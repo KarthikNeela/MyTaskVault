@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up</title>
+</head>
+<body>
+  <h2>Sign Up</h2>
+  <form id="signup-form">
+    <input type="text" id="name" placeholder="Name" required /><br><br>
+    <input type="email" id="email" placeholder="Email" required /><br><br>
+    <input type="password" id="password" placeholder="Password" required /><br><br>
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <p id="message"></p>
+
+  <p id="gotologin"></p>
+
+  <div id="button"></div>
+
+  <script>
+    const form = document.getElementById("signup-form");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      const response = await fetch("http://localhost:3000/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      const result = await response.json();
+
+      document.getElementById("message").innerText =
+        result.message || result.error;
+      if(result.message="User created successfully"){
+        document.getElementById("gotologin").innerText = "go to login page?";
+        document.getElementById("button").innerHTML = '<a href="http://localhost:3000/api/login"><button>Go to Login</button></a>';
+      }
+    });
+  </script>
+</body>
+</html>

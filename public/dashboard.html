@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tasks</title>
+</head>
+<body>
+  <h2>My Task Dashboard</h2>
+
+  <form id="task-form">
+    <input type="text" id="task-content" placeholder="New Task..." required />
+    <button type="submit">Add Task</button>
+  </form>
+
+  <h3>Your Tasks</h3>
+  <ul id="task-list"></ul>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("user"));
+    const userId = user?.id;
+    const taskList = document.getElementById("task-list");
+
+    if (!userId) {
+      alert("Not logged in! Redirecting to login...");
+      window.location.href = "login.html";
+    }
+
+    // Fetch user's tasks
+    async function fetchTasks() {
+      const res = await fetch(`http://localhost:3000/api/tasks/${userId}`);
+      const tasks = await res.json();
+
+      taskList.innerHTML = '';
+      tasks.forEach(task => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          ${task.task_content} 
+          ${task.is_complete ? '✅' : ''}
+          <button onclick="deleteTask(${task.id})">Delete</button>
+          ${!task.is_complete ? `<button onclick="completeTask(${task.id})">Mark Complete</button>` : ''}
+        `;
+        taskList.appendChild(li);
+      });
+    }
+
+    // Add new task
+    document.getElementById("task-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const taskContent = document.getElementById("task-content").value;
+
+      await fetch("http://localhost:3000/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, task_content: taskContent })
+      });
+
+      document.getElementById("task-content").value = '';
+      fetchTasks(); // refresh list
+    });
+
+    // Delete task
+    async function deleteTask(taskId) {
+      await fetch(`http://localhost:3000/api/tasks/${taskId}`, {
+        method: "DELETE"
+      });
+      fetchTasks();
+    }
+
+    // Mark task complete
+    async function completeTask(taskId) {
+      await fetch(`http://localhost:3000/api/tasks/${taskId}/complete`, {
+        method: "PUT"
+      });
+      fetchTasks();
+    }
+
+    // Initial load
+    fetchTasks();
+  </script>
+</body>
+</html>
